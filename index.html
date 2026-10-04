@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Spotify Songs' Genre Segmentation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=DM+Sans:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head><body>
+<header class="nav"><a class="brand" href="#home">Genre Segmentation</a>
+<button id="burger" aria-label="Toggle menu" aria-expanded="false" aria-controls="menu">Menu</button>
+<nav id="menu" aria-label="Main"><a href="#home">Home</a><a href="#songs">Explore songs</a><a href="#genres">Genres</a><a href="#segments">Segmentation</a><a href="#playlists">Playlists</a><a href="#analytics">Analytics</a><a href="#discover">Discover</a><a href="#top">Top songs</a><a href="#about">About</a></nav></header>
+<div id="loader" role="status"><span class="spin"></span>Reading the dataset...</div>
+<div id="error" class="card" role="alert" hidden></div>
+<main>
+<section id="home"><div class="hero"><div>
+<h1>Explore the Sound of Spotify</h1>
+<p class="lead">Discover patterns across thousands of songs using genre, popularity and audio characteristics.</p>
+<p><a class="btn" href="#songs">Explore Songs</a> <a class="btn alt" href="#genres">Explore Genres</a></p></div>
+<div class="card"><h3>Every dot is a song: valence vs energy</h3><div class="cv tall"><canvas id="heroChart" aria-label="Scatter of valence versus energy for a sample of songs, colored by genre"></canvas></div><div id="legend" class="legend"></div></div></div>
+<div id="stats" class="stats"></div></section>
+
+<section id="songs"><h2>Explore songs</h2>
+<div class="controls">
+<label>Search song or artist<input id="q" type="search" placeholder="Type to search"></label>
+<label>Genre<select id="f-genre"></select></label>
+<label>Subgenre<select id="f-sub"></select></label>
+<label>Min popularity <output id="f-pop-o">0</output><input id="f-pop" type="range" min="0" max="100" value="0"></label>
+<label>Min energy <output id="f-energy-o">0</output><input id="f-energy" type="range" min="0" max="1" step="0.05" value="0"></label>
+<label>Min danceability <output id="f-dance-o">0</output><input id="f-dance" type="range" min="0" max="1" step="0.05" value="0"></label>
+<label>Sort by<select id="sort"><option value="track_popularity">Popularity</option><option value="track_name">Song name</option><option value="track_artist">Artist</option><option value="energy">Energy</option><option value="danceability">Danceability</option></select></label>
+<label>&nbsp;<button id="reset" class="btn alt" type="button">Reset filters</button></label></div>
+<p id="count" class="muted"></p>
+<div class="tw"><table><thead><tr><th>Song</th><th>Artist</th><th>Genre</th><th>Subgenre</th><th>Pop.</th><th>Dance</th><th>Energy</th><th>Valence</th><th>Tempo</th></tr></thead><tbody id="rows"></tbody></table></div>
+<p id="songs-empty" class="muted" hidden>No songs match. Clear a filter or try a different search.</p>
+<div class="pager"><button id="prev" class="btn alt" type="button">Previous</button><span id="page"></span><button id="next" class="btn alt" type="button">Next</button></div></section>
+
+<section id="genres"><h2>Genres</h2><div id="genre-cards" class="grid sm"></div>
+<div id="genre-detail" class="card" hidden></div>
+<div id="genre-charts" class="grid"></div>
+<h2 class="sub">Subgenres</h2>
+<div class="controls"><label>Parent genre<select id="sg-genre"></select></label><label>Chart metric<select id="sg-metric"><option value="n">Number of songs</option><option value="track_popularity">Average popularity</option><option value="energy">Average energy</option><option value="danceability">Average danceability</option></select></label></div>
+<div class="card"><div class="cv tall"><canvas id="sgChart" aria-label="Subgenre comparison"></canvas></div></div>
+<div class="tw"><table><thead><tr><th>Subgenre</th><th>Parent genre</th><th>Songs</th><th>Avg popularity</th><th>Avg energy</th><th>Avg danceability</th></tr></thead><tbody id="sg-rows"></tbody></table></div></section>
+
+<section id="segments"><h2>Genre segmentation</h2>
+<p class="muted">Each bubble is a subgenre, placed by its average energy and danceability. Bubble size shows song count. The radar compares the average audio profile of each genre.</p>
+<div class="grid"><div class="card"><h3>Subgenre map</h3><div class="cv tall"><canvas id="bubble"></canvas></div></div><div class="card"><h3>Genre feature comparison</h3><div class="cv tall"><canvas id="genreRadar"></canvas></div></div></div></section>
+
+<section id="playlists"><h2>Playlists</h2>
+<div class="controls"><label>Search playlists<input id="pl-q" type="search" placeholder="Playlist name"></label></div>
+<div class="tw"><table><thead><tr><th>Playlist</th><th>Genre</th><th>Songs</th><th>Avg popularity</th></tr></thead><tbody id="pl-rows"></tbody></table></div>
+<p id="pl-empty" class="muted" hidden>No playlists match that name.</p>
+<div id="pl-detail" class="card" hidden></div></section>
+
+<section id="analytics"><h2>Analytics</h2><div id="an-grid" class="grid"></div>
+<h2 class="sub">Correlation heatmap</h2><p class="muted">Pearson correlation across all rows. Hover a cell for the pair.</p>
+<div class="card tw" id="heat"></div></section>
+
+<section id="discover"><h2>Discover music</h2>
+<div class="controls">
+<label>Genre<select id="d-genre"></select></label>
+<label>Energy<select id="d-energy"></select></label><label>Danceability<select id="d-dance"></select></label>
+<label>Valence<select id="d-valence"></select></label><label>Popularity<select id="d-pop"></select></label></div>
+<div id="d-out" class="grid sm"></div></section>
+
+<section id="top"><h2>Top songs and artists</h2>
+<div class="grid"><div class="card tw"><h3>Top 10 songs</h3><table><thead><tr><th>Song</th><th>Artist</th><th>Genre</th><th>Pop.</th></tr></thead><tbody id="top-songs"></tbody></table></div>
+<div class="card tw"><h3>Top 10 artists</h3><p class="muted">Average popularity of unique tracks, artists with 5 or more tracks.</p><table><thead><tr><th>Artist</th><th>Tracks</th><th>Avg pop.</th></tr></thead><tbody id="top-artists"></tbody></table></div></div></section>
+
+<section id="about"><h2>About this project</h2>
+<p class="lead">Segmentation here means grouping songs by playlist genre and subgenre, then comparing their audio features. The dataset has <span id="rowcount"></span> playlist entries, so a track on several playlists appears more than once.</p>
+<p class="muted">Built with HTML, CSS and vanilla JavaScript. Chart.js draws the charts and Papa Parse reads the CSV in your browser.</p></section>
+</main>
+<dialog id="dlg" aria-labelledby="d-title"><h2 id="d-title"></h2><dl id="d-meta" class="meta"></dl>
+<div class="cv"><canvas id="songRadar" aria-label="Audio features radar"></canvas></div>
+<p><button class="btn" id="d-close" type="button">Close</button></p></dialog>
+<button id="top-btn" aria-label="Scroll to top" hidden>Top</button>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="js/data.js"></script><script src="js/charts.js"></script><script src="js/genres.js"></script><script src="js/songs.js"></script><script src="js/analytics.js"></script><script src="js/app.js"></script>
+</body></html>
